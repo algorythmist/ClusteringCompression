@@ -12,10 +12,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import javax.imageio.ImageIO;
 
 public class ClusteringImageCompresser {
+
+	private static final Logger LOG = Logger.getLogger(ClusteringImageCompresser.class.getName());
 
 	private int colors = 16;
 	private int bits = 4;
@@ -29,21 +32,25 @@ public class ClusteringImageCompresser {
 		List<double[]> data = reshape(image);
 
 		/* Train the clustering algorithm on the data */
-		KMeansClusterer<double[]> clusterer = new KMeansClusterer<double[]>(
-				colors, new EuclideanMetric(), new MeanCenterExtractor());
-		List<double[]> centers = clusterer.cluster(data);
+		EfficientClusterer<double[]> clusterer = new EfficientClusterer<double[]>(new EuclideanMetric(),
+				new MeanCenterExtractor());
+		Clustering<double[]> clustering = clusterer.cluster(data, colors);
+		List<double[]> centers = clustering.getCenters();
+		int[] memberships = clustering.getMemberships();
 
 		/* Cleate a color model with the reduced set of colors */
 		IndexColorModel cm = generateColorModel(centers, colors, bits);
 
-		/* Create an array where each pixel value points to a color in the index */
+		/*
+		 * Create an array where each pixel value points to a color in the index
+		 */
 		int width = image.getWidth();
 		int height = image.getHeight();
 		byte[] pixels = new byte[width * height];
-		int i = 0;
-		for (double[] datum : data) {
-			int c = clusterer.findClosestCenter(datum);
-			pixels[i++] = (byte) c;
+
+		for (int i = 0; i < data.size(); i++) {
+			int c = memberships[i];
+			pixels[i] = (byte) c;
 		}
 
 		// Create a data buffer using the byte buffer of pixel data.
@@ -54,12 +61,10 @@ public class ClusteringImageCompresser {
 		// Prepare a sample model that specifies a storage 4-bits of
 		// pixel data in an 8-bit data element
 		int bitMasks[] = new int[] { 0xf };
-		SampleModel sampleModel = new SinglePixelPackedSampleModel(
-				DataBuffer.TYPE_BYTE, width, height, bitMasks);
+		SampleModel sampleModel = new SinglePixelPackedSampleModel(DataBuffer.TYPE_BYTE, width, height, bitMasks);
 
 		// Create a raster using the sample model and data buffer
-		WritableRaster raster = Raster.createWritableRaster(sampleModel, dbuf,
-				null);
+		WritableRaster raster = Raster.createWritableRaster(sampleModel, dbuf, null);
 
 		// Combine the color model and raster into a buffered image
 		BufferedImage compressed = new BufferedImage(cm, raster, false, null);
@@ -67,8 +72,7 @@ public class ClusteringImageCompresser {
 
 	}
 
-	private static IndexColorModel generateColorModel(List<double[]> centers,
-			int colors, int bits) {
+	private static IndexColorModel generateColorModel(List<double[]> centers, int colors, int bits) {
 
 		byte[] r = new byte[colors];
 		byte[] g = new byte[colors];
@@ -104,16 +108,23 @@ public class ClusteringImageCompresser {
 	private static double[] getRGB(BufferedImage image, int row, int col) {
 		double[] rgb = new double[3];
 		for (int c = 0; c < 3; c++) {
-			// System.out.println(row+" "+col+" "+c);
 			rgb[c] = image.getRaster().getSample(row, col, c);
 		}
 		return rgb;
 	}
 
 	public static void main(String[] args) throws IOException {
+		long time = System.currentTimeMillis();
+		LOG.info("Reading image...");
 		BufferedImage image = ImageIO.read(new File("JungleBird.png"));
+		time = System.currentTimeMillis() - time;
+		LOG.info(String.format("Read image in %d milliseconds", time));
+		LOG.info("Compressing...");
+		time = System.currentTimeMillis();
 		ClusteringImageCompresser compression = new ClusteringImageCompresser();
 		BufferedImage compressed = compression.compress(image);
+		time = System.currentTimeMillis() - time;
+		LOG.info(String.format("Compressed image in %d milliseconds", time));
 		ImageIO.write(compressed, "png", new File("compressed.png"));
 	}
 }

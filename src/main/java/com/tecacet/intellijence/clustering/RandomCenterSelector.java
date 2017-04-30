@@ -9,17 +9,17 @@ import java.util.Set;
 public class RandomCenterSelector<T> implements CenterSelector<T> {
 
 	private final Random random;
-	
+
 	public RandomCenterSelector() {
 		this(new Random());
 	}
-	
+
 	public RandomCenterSelector(Random generator) {
-		this.random= generator;
+		this.random = generator;
 	}
 
 	public List<T> chooseInitialCenters(List<T> dataPoints, int clusters) {
-		if (dataPoints.size()< clusters) {
+		if (dataPoints.size() < clusters) {
 			throw new IllegalArgumentException("There are fewer points than clusters!");
 		}
 		Set<Integer> indexes = new HashSet<Integer>(clusters);
