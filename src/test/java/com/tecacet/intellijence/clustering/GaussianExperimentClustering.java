@@ -27,7 +27,7 @@ public class GaussianExperimentClustering {
 			data.add(point);
 		}
 
-		EfficientClusterer<double[]> clusterer = new EfficientClusterer<>(new EuclideanMetric(),
+		IterativeClusterer<double[]> clusterer = new IterativeClusterer<>(new EuclideanMetric(),
 				new MeanCenterExtractor());
 		Clustering<double[]> clustering = clusterer.cluster(data, 3);
 		int[] memberships = clustering.getMemberships();

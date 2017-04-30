@@ -1,10 +1,10 @@
 package com.tecacet.intellijence.clustering;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class RandomCenterSelector<T> implements CenterSelector<T> {
 
@@ -26,11 +26,7 @@ public class RandomCenterSelector<T> implements CenterSelector<T> {
 		while (indexes.size() < clusters) {
 			indexes.add(random.nextInt(dataPoints.size()));
 		}
-		ArrayList<T> centers = new ArrayList<T>(clusters);
-		for (int index : indexes) {
-			centers.add(dataPoints.get(index));
-		}
-		return centers;
+		return indexes.stream().map(i -> dataPoints.get(i)).collect(Collectors.toList());
 	}
 
 }

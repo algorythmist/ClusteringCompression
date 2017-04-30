@@ -1,18 +1,22 @@
 package com.tecacet.intellijence.clustering;
 
 import java.util.List;
+import java.util.logging.Logger;
 
-public class EfficientClusterer<T> {
+public class IterativeClusterer<T> {
 	
-	private static final int DEFALT_MAX_ITERATIONS = 1000;
-	private static final double DEFAULT_TOLERANCE = 0.0001;
+	
+	private static final int MAX_ITERATIONS = 1000;
+	private static final double TOLERANCE = 0.0001;
 
+	private final Logger logger = Logger.getLogger(this.getClass().getName());
+	
 	private final CenterSelector<T> centerSelector = new RandomCenterSelector<>();
 
 	private final Metric<T> metric;
 	private final CenterExtractor<T> centerExtractor;
 
-	public EfficientClusterer(Metric<T> metric, CenterExtractor<T> centerExtractor) {
+	public IterativeClusterer(Metric<T> metric, CenterExtractor<T> centerExtractor) {
 		super();
 		this.metric = metric;
 		this.centerExtractor = centerExtractor;
@@ -25,10 +29,10 @@ public class EfficientClusterer<T> {
 
 		Clustering<T> clustering = new Clustering<>(centers, new int[dataPoints.size()]);
 		int iter;
-		for (iter = 0; iter < DEFALT_MAX_ITERATIONS; iter++) {
+		for (iter = 0; iter < MAX_ITERATIONS; iter++) {
 			clustering = clusteringStep(dataPoints, clustering);
 			if (converged(centers, clustering.getCenters())) {
-				System.out.println("Clustering converged " + iter);
+				logger.info(String.format("Clustering converged in %d iterations.",iter));
 				break;
 			}
 			centers = clustering.getCenters();
@@ -77,7 +81,7 @@ public class EfficientClusterer<T> {
 			T oldCenter = oldCenters.get(i);
 			T newCenter = newCenters.get(i);
 			double distance = metric.distance(oldCenter, newCenter);
-			if (distance > DEFAULT_TOLERANCE) {
+			if (distance > TOLERANCE) {
 				return false;
 			}
 		}

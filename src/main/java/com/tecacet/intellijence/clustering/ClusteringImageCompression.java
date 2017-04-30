@@ -16,9 +16,9 @@ import java.util.logging.Logger;
 
 import javax.imageio.ImageIO;
 
-public class ClusteringImageCompresser {
+public class ClusteringImageCompression {
 
-	private static final Logger LOG = Logger.getLogger(ClusteringImageCompresser.class.getName());
+	private static final Logger LOG = Logger.getLogger(ClusteringImageCompression.class.getName());
 
 	private int colors = 16;
 	private int bits = 4;
@@ -32,7 +32,7 @@ public class ClusteringImageCompresser {
 		List<double[]> data = reshape(image);
 
 		/* Train the clustering algorithm on the data */
-		EfficientClusterer<double[]> clusterer = new EfficientClusterer<double[]>(new EuclideanMetric(),
+		IterativeClusterer<double[]> clusterer = new IterativeClusterer<double[]>(new EuclideanMetric(),
 				new MeanCenterExtractor());
 		Clustering<double[]> clustering = clusterer.cluster(data, colors);
 		List<double[]> centers = clustering.getCenters();
@@ -121,7 +121,7 @@ public class ClusteringImageCompresser {
 		LOG.info(String.format("Read image in %d milliseconds", time));
 		LOG.info("Compressing...");
 		time = System.currentTimeMillis();
-		ClusteringImageCompresser compression = new ClusteringImageCompresser();
+		ClusteringImageCompression compression = new ClusteringImageCompression();
 		BufferedImage compressed = compression.compress(image);
 		time = System.currentTimeMillis() - time;
 		LOG.info(String.format("Compressed image in %d milliseconds", time));
