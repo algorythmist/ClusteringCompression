@@ -23,7 +23,7 @@ public class IterativeClusterer<T> {
 	}
 
 	public Clustering<T> cluster(List<T> dataPoints, int clusters) {
-
+		logger.info(String.format("Clustering %d points into %d clusters", dataPoints.size(), clusters));
 		// choose initial centers
 		List<T> centers = centerSelector.chooseInitialCenters(dataPoints, clusters);
 
